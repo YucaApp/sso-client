@@ -1,0 +1,27 @@
+{
+    "name": "yuca/sso",
+    "description": "Single Sign-On for Yuca App",
+    "keywords": ["sso", "auth"],
+    "license": "MIT",
+    "homepage": "https://github.com/YucaApp/sso-client",
+    "authors": [
+        {
+            "name": "Agung Darmanto",
+            "email": "agung.darmantoo@gmail.com",
+            "homepage": "https://yuca.co/"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/YucaApp/sso-client/issues",
+        "source": "https://github.com/YucaApp/sso-client"
+    },
+    "require": {
+        "guzzlehttp/guzzle": "^6.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Yuca\\SSO\\": "src/"
+        }
+    }
+}
+
