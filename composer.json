@@ -1,6 +1,6 @@
 {
-    "name": "yuca/sso",
-    "description": "Single Sign-On for Yuca App",
+    "name": "yuca/sso-client",
+    "description": "SSO Client for Yuca App",
     "keywords": ["sso", "auth"],
     "license": "MIT",
     "homepage": "https://github.com/YucaApp/sso-client",
