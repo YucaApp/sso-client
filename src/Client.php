@@ -135,21 +135,23 @@ class Client
     /**
      * Get URL to attach session at SSO server.
      *
-     * @param array $params
      * @return string
      */
-    public function getAttachUrl($params = [])
+    public function getAttachUrl()
     {
         $this->generateToken();
 
+        $protocol = !empty($_SERVER['HTTPS']) ? 'https://' : 'http://';
+        $returnUrl = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
         $data = [
             'command' => 'attach',
             'broker' => $this->broker,
             'token' => $this->token,
-            'checksum' => hash('sha256', 'attach' . $this->token . $this->secret)
-        ] + $_GET;
+            'checksum' => hash('sha256', 'attach' . $this->token . $this->secret),
+            'return_url' => $dreturnUrl,
+        ];
 
-        return $this->url . "?" . http_build_query($data + $params);
+        return $this->url . "?" . http_build_query($data);
     }
 
     /**
@@ -163,14 +165,8 @@ class Client
             return true;
         }
 
-        $data = $this->request('get', 'attach');
-        if (isset($data['error'])) {
-            throw new \Exception($data['error']);
-        } elseif (!isset($data['success'])) {
-            throw new \Exception('Error: '.print_r($data, 1));
-        }
-
-        return $data;
+        header('Location:' . $this->getAttachUrl());
+        die;
     }
 
     /**
@@ -196,27 +192,20 @@ class Client
      */
     protected function request($method, $command, $data = null)
     {
+        if (!$this->isAttached()) {
+            throw new \Exception('No token');
+        }
+
         if ($data && is_string($data)) {
             $key = $data;
             $data = [];
             $data[$key] = 1;
         }
-        
-        $headers = ['Accept' => 'application/json'];
-        
-        if ($command == 'attach') {
-            $url = $this->getAttachUrl();
-        } else {
-            if (!$this->isAttached()) {
-                throw new \Exception('No token');
-            }
 
-            // Set Authorization using token
-            $data['access_token'] = $this->getSessionId();
-    
-            $data['referer_url'] = (!empty($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-            $url = $this->getRequestUrl($command, !$data || $method === 'POST' ? [] : $data);
-        }
+        // Set Authorization using token
+        $data['access_token'] = $this->getSessionId();
+        $data['referer_url'] = (!empty($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        $url = $this->getRequestUrl($command, !$data || $method === 'POST' ? [] : $data);
 
         $client = new GuzzleHttp(['http_errors' => false]);
 
@@ -227,17 +216,18 @@ class Client
         }
 
         $httpCode = $response->getStatusCode();
-        $result = json_decode($response->getBody(), true);
+        $contents = $response->getBody()->getContents();
+        $result = json_decode($contents, true);
         if ($httpCode == 200) {
             return $result;
-        } elseif ($httpCode == 307 && isset($result['redirect'])) {
-            header("Location: " . $result['redirect'], true, 307);
+        } elseif ($httpCode == 307) {
+            header("Location: " . $result['error']);
             die;
         } else {
             if ($httpCode == 403) {
                 $this->clearToken();
             }
-            throw new \Exception($response->getBody()->getContents(), $httpCode);
+            throw new \Exception($contents, $httpCode);
         }
     }
 
