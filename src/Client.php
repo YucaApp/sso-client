@@ -148,7 +148,7 @@ class Client
             'broker' => $this->broker,
             'token' => $this->token,
             'checksum' => hash('sha256', 'attach' . $this->token . $this->secret),
-            'return_url' => $dreturnUrl,
+            'return_url' => $returnUrl,
         ];
 
         return $this->url . "?" . http_build_query($data);
