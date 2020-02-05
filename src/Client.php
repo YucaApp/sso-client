@@ -205,6 +205,7 @@ class Client
         // Set Authorization using token
         $data['access_token'] = $this->getSessionId();
         $data['referer_url'] = (!empty($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        $data['referer_ip'] = isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : $_SERVER['REMOTE_ADDR'];
         $url = $this->getRequestUrl($command, !$data || $method === 'POST' ? [] : $data);
 
         $client = new GuzzleHttp(['http_errors' => false]);
@@ -218,7 +219,7 @@ class Client
         $httpCode = $response->getStatusCode();
         $contents = $response->getBody()->getContents();
         $result = json_decode($contents, true);
-        if ($httpCode == 200) {
+        if ($httpCode < 300) {
             return $result;
         } elseif ($httpCode == 307) {
             header("Location: " . $result['error']);
@@ -227,7 +228,7 @@ class Client
             if ($httpCode == 403) {
                 $this->clearToken();
             }
-            throw new \Exception($contents, $httpCode);
+            throw new \Exception(isset($result['error']) ? $result['error'] : $contents, $httpCode);
         }
     }
 
