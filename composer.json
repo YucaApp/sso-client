@@ -7,7 +7,6 @@
     "authors": [
         {
             "name": "Agung Darmanto",
-            "email": "agung.darmantoo@gmail.com",
             "homepage": "https://yuca.co/"
         }
     ],
@@ -16,7 +15,7 @@
         "source": "https://github.com/YucaApp/sso-client"
     },
     "require": {
-        "guzzlehttp/guzzle": "^6.3"
+        "guzzlehttp/guzzle": "^6.3|^7"
     },
     "autoload": {
         "psr-4": {
